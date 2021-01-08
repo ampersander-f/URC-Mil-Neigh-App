@@ -1,5 +1,24 @@
 # URC-Mil-Neigh-App
 
+## How does it run?
+
+I designed this code to be as streamlined as possible, so that it is possible to run very different simulations but only having to change one file to do so. The 'simulation' is a *class* rather than a function, allowing for easy parallel computing as each simulation is an instance and does not depend on shared resources. This idea was extended to the analysis and graphical methods, and the simulation instance will automatically pass on the correct files and constants to the analysis and ~prevents me from using the wrong set of constants for two weeks~ reduces human error between runs.
+
+The simulation is specified in the 'runner' file, on here as `runner_CAURS.py`. All of the necessary python libraries are imported, as well as the classes. DASH is the MD engine and we specify the build. The constants and parameters (e.g. potential function, box size, compression rate, etc) are specified, and last are the command codes (they designate number of time steps, whether to compress or not, and the 'fixes' for DASH, which are C++ commands in a python wrapper). A simulation instance is created, and the the run() command runs the simulation. 
+
+The simulation class (`simulator.py`) mostly functions to automate populating the DASH functions for the specified parameters, which makes it much easier to run these simulations--no need to rewrite the simulations or have a million copy-pasted versions with minor parameter changes. Since DASH requires CUDA programs that specify each potential function (included in `/DASH_RL_potentials`), I ended up making simulation subclasses for each potential as we needed it (`SimulatorRL.py`, to allow for different numbers of instance variables across simulations.
+
+Once the simulation is done, an .xyz file is spit out, and it specifies the xyz location of each particle at each timestep of the simulation. This filename is chosen ahead of time, and so the runner automatically finds the new .xyz file. 
+
+We next specify the `Grapher` instance we would like to use (allows us to graph the same data multiple ways without re-running the analysis or saving the otherwise prohibitively large data set). 
+
+The `PressureSensor` instance is then created (and requires a `Grapher` object), which defines a region in the simulation where we pretend there is a Wilhelmy plate (as with the `simulation` instance, we have subclasses, `PressureSensorRL.py` and `PressureSensor2Body.py`, which define different potential functions and their integrated forms). 
+
+At last the `analyzer.py` instance is created, and the `PressureSensor` and `Grapher` passed to it. The .xyz file is opened and read, and the main `analyzer` function (`perform_analysis()`) is called.
+
+Finally, when done, the .xyz file is closed to preserve the data. The .xyz file and all graphs, charts, and data files created by the `Grapher`s are tidily stored in the same directory, and the full simulation/analysis/visualization is complete.
+
+
 ## Some Background Theory
 
 Two-dimensional materials, often called single-layer materials, can be formed using nanoparticles. These materials may be tailored to suit a wide range of needs, with applications that span photovoltaics, microelectronics, and surface chemistry/catalysis (e.g. water purification). My lab was interested in 2D materials with unusually high tensile strengths (resistance to breaking under mechanical stresses like shear force), specifically thiol-ligated gold nanoparticle monolayers. These nanoparticles have a solid gold core, made of a few hundred gold atoms, which were then covered in hydrocarbon 'hairs' attached via sulfur atoms ("thiol-ligated"). The tensile strength of these layers is attributed to a velcro-like effect of the hairs with neighboring particles.  
