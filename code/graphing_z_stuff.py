@@ -30,8 +30,7 @@ Z = Z[31:]
 Z2 = Z2[31:]
 
 
-#so this chunk of code is useful if you want to make a histogram at a particular timestep
-#i've attached an example one
+#histogram at a particular timestep
 #'i' is used to locate the particular timestep you want, as well as the 'while' loop
 '''
 i = 3500
@@ -47,7 +46,6 @@ exit()
 '''
 
 #this makes the funky picture with all the colors :)
-#i stole it from stackoverflow so i have no clue what most of this does :)))
 plt.imshow(Z2, extent=(np.amin(X), np.amax(X), np.amin(Y), np.amax(Y)), cmap=cm.hot, aspect='auto', norm=LogNorm())
 plt.ylim([np.amin(Y),np.amax(Y)])
 plt.xlabel("Area/nanoparticle, nm^2")
