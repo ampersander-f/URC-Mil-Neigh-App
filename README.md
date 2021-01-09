@@ -52,9 +52,9 @@ Nearest neighbors are then found through `analyzer.find_nearest_neighbors`. Usin
 
 The final technical note is in the use of a dictionary to store the nearest neighbors. When iterating over the ridge points, each unique particle becomes a dictionary key (specifically, the tuple of its (x,y,z) position is the key), and a list of its nearest neighbors is the value. Since python dictionaries are hash tables, this dropped computational cost to zero relative to the I/O cost of reading the .xyz file.
 
-When finding the total force or potential in the `PressureSensor`, I pass it this dictionary. Iterating over the key/value pairs and evaluating the hard-coded functions `PressureSensor.calculate_pressure()` also has negligible computational cost, and as soon as the pressure and area are calculated and saved in the `sensor` instance, the loop ends.  
+When finding the total force or potential in the `PressureSensor`, I pass it this dictionary. In only iterating over the key/value pairs and evaluating the hard-coded functions, `PressureSensor.calculate_pressure()` also has negligible computational cost, and as soon as the pressure and area are calculated and saved in the `sensor` instance, the loop pass ends.  
 
-The generator function `parse_file()` is called again to pick up where it left off, and the timestep data are deleted from memory, and the next timestep is parsed, and this loop repeats until the entire file has been read.
+The generator function `parse_file()` is called again to pick up where it left off, and the timestep data are deleted from memory. The next timestep is parsed, ... This loop repeats until the entire file has been analyzed.
 
 In summary, by using a generator function, `Qhull` code, and python dictionaries, the massive overhead for the analysis of 530,000 timesteps is eliminated. Only the data for a single timestep is in memory at a time, and the 10,000 particles are reduced to ~500 almost immediately. The 500 are then Voronoi tesselated, placed in a hash table, and after simple arithmetic calculations, reduced to only two numbers. The two numbers are saved, then the entire timestep is wiped from memory. The analysis is computationally sparse enough to perform on my laptop and watch Youtube at the same time, and takes about 20 minutes to finish. 
 
