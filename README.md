@@ -37,7 +37,27 @@ The `PressureSensor` mimics the data collected by Wilhelmy plates, but it does n
 
 It is necessary to calculate either the force or the potential between each pair of particles (Pressure = Force / Area, Potential = Integral(Force/Area)). Both are functions of only the distance between two particles. It is easiest to hard-code these functions instead of taking numerical integrals, and the hard-coding is kept in each `PressureSensor` subclass. Hence the choice to use `PressureSensorRL` for RL simulations, etc.
 
-A `sensor` requires a frame as well as a border, which was chosen to ensure that the particles at the edge of the bounds do not lose the force effects of their nearest neighbors, but also so that these nearest neighbors do not have their own effective forces added to the Wilhelmy plate. The pressure for each timestep is calculated and stored as an instance variable in the `sensor`, and for convenience, the total area of the simulation at that time step is also stored as an instance variable. Note: **total area** is a proxy for time and is the independent variable/x-axis in most of the graphs, as the area decreases at each time step; it is not used in the surface pressure calculations--they use **`PressureSensor` area**.
+A `sensor` requires a frame as well as a border, which was chosen to ensure that the particles at the edge of the bounds do not lose the force effects of their nearest neighbors, but also so that these nearest neighbors do not have their own effective forces added to the Wilhelmy plate. The pressure for each timestep is calculated and stored as an instance variable in the `sensor`, and for convenience, the total area of the simulation at that time step is also stored as an instance variable. Note: **total area** is a proxy for time and is the independent variable/x-axis in most of the graphs, as the area decreases at each time step; it is not used in the surface pressure calculations--they use **`PressureSensor` area**.  
+
+
+### `Analyzer` Details  
+
+Analysis presented considerable problems to this pipeline. Each timestep requires significant computational analysis, as the process described above was done to ~500 particles for each of the 530,000 timesteps. Additionally, the .xyz file (really just a .txt file) was too large to hold in memory at the same time, even with the supercomputer. Parsing the file had to happen simultaneously with the computational analysis at each time step.
+
+Because of this, I chose to build a [generator function](https://wiki.python.org/moin/Generators), implemented in `analyzer.parse_file()` and called in `analyzer.perform_analysis()`. `parse_file()` parses one timestep at a time, and once it has read all the data in the time step, `yield`s the timestep data to `perform_analysis`. The `analyzer` instance then finds the particles inside the `sensor` *frame* (the larger boundary), reducing the number of particle positions in memory from 10,000 to 500 or so.
+
+Even with the greatly reduced particle set, finding the pairwise potentials between all pairs in this set is prohibitively expensive. Instead, we argue on physical grounds that the attractive forces between particles are directly the result of the 'velcro effect' and require direct contact, and so only a particle's nearest neighbors are relevant in the force calculation.
+
+Nearest neighbors are then found through `analyzer.find_nearest_neighbors`. Using the python library `Voronoi` (i.e. [Qhull](http://www.qhull.org/html/index.htm), which uses the DeLaunay triangularization algorithms implemented in C), I created a 3D Voronoi tesselation of the particles, which is computationally very cheap. The tesselation will return its ridge points, which are the lines drawn from particle to particle that form the Voronoi cells; the ridge points themselves are pairs of particles, e.g. \[4, 8] means a ridge forms between particles 4 and 8. Using this set of ridge points, I was able to find the nearest neighbors.
+
+The final technical note is in the use of a dictionary to store the nearest neighbors. When iterating over the ridge points, each unique particle becomes a dictionary key (specifically, the tuple of its (x,y,z) position is the key), and a list of its nearest neighbors is the value. Since python dictionaries are hash tables, this dropped computational cost to zero relative to the I/O cost of reading the .xyz file.
+
+When finding the total force or potential in the `PressureSensor`, I pass it this dictionary. Iterating over the key/value pairs and evaluating the hard-coded functions `PressureSensor.calculate_pressure()` also has negligible computational cost, and as soon as the pressure and area are calculated and saved in the `sensor` instance, the loop ends.  
+
+The generator function `parse_file()` is called again to pick up where it left off, and the timestep data are deleted from memory, and the next timestep is parsed, and this loop repeats until the entire file has been read.
+
+In summary, by using a generator function, `Qhull` code, and python dictionaries, the massive overhead for the analysis of 530,000 timesteps is eliminated. Only the data for a single timestep is in memory at a time, and the 10,000 particles are reduced to ~500 almost immediately. The 500 are then Voronoi tesselated, placed in a hash table, and after simple arithmetic calculations, reduced to only two numbers. The two numbers are saved, then the entire timestep is wiped from memory. The analysis is computationally sparse enough to perform on my laptop and watch Youtube at the same time, and takes about 20 minutes to finish. 
+
 
 ## Some Background Information and Technical Details
 
