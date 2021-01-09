@@ -58,6 +58,10 @@ The generator function `parse_file()` is called again to pick up where it left o
 
 In summary, by using a generator function, `Qhull` code, and python dictionaries, the massive overhead for the analysis of 530,000 timesteps is eliminated. Only the data for a single timestep is in memory at a time, and the 10,000 particles are reduced to ~500 almost immediately. The 500 are then Voronoi tesselated, placed in a hash table, and after simple arithmetic calculations, reduced to only two numbers. The two numbers are saved, then the entire timestep is wiped from memory. The analysis is computationally sparse enough to perform on my laptop and watch Youtube at the same time, and takes about 20 minutes to finish. 
 
+#### `Grapher` Details  
+
+Not much to say on technical implementation, just a bit of detail on the two images in `/images`. `isotherm.png` is an example of the graphed isotherms using a bit of smoothing; see `ljcaursplot.py`, but it's just fancy matplotlib. `height_dist.png` is an image I made while we were investigating the relationship between particle height distribution and the monolayer collapse. Each vertical slice of the graph is a histogram of the z-position of the particles. The histogram bin density is then converted into a matplotlib colorbar object (globalized a posteriori so that the colors played nice). After this has been done for all timesteps, the colorbar objects are aggregated and turned into a heatmap, which is the graph. This graph in particular led to significant insight in at the transition point, as it demonstrates that particles do not "spread out" from regions of high density to fill in the bilayer, but instead expel the furtherest particles and maintain the monolayer as best they can. Code for this graph is in `graphing_z_stuff.py`. 
+
 
 ## Some Background Information and Technical Details
 
