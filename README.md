@@ -1,5 +1,11 @@
 # URC Million Neighborhoods Project Application - Code Sample
 
+## TL;DR  
+
+For interest only in technical implementation and fancy methods: [`PressureSensor` Details](###-pressureSensor-details)
+For interest in project workflow: [How does it run?](##how-does-it-run?)
+For interest only in technical 
+
 ## A brief overview of the project
 
 #### NOTE: for a more thorough overview, I recommend looking at the final section in this README. for a technical overview, I recommend reading through the poster pdf
