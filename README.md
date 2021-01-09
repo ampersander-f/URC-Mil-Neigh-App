@@ -2,9 +2,9 @@
 
 ## TL;DR  
 
-For interest only in technical implementation and fancy methods: [`PressureSensor` Details](###-pressureSensor-details)
-For interest in project workflow: [How does it run?](##how-does-it-run?)
-For interest only in technical 
+For interest only in technical implementation and fancy methods: [PressureSensor Details](#pressuresensor-details), [Analyzer Details](#analyzer-details)  
+For interest in project workflow: [How does it run?](#how-does-it-run?)  
+For interest only pretty graphs: [Grapher Details](#grapher-details)  
 
 ## A brief overview of the project
 
