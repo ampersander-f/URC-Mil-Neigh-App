@@ -28,8 +28,16 @@ The `PressureSensor` instance is then created, which defines a region in the sim
 
 At last the `analyzer.py` instance is created, and the `PressureSensor` and `Grapher` passed to it. The .xyz file is opened and read, and the main `analyzer` function (`perform_analysis()`) is called. Details on all of these classes is provided below.
 
-Finally, when done, the .xyz file is closed to preserve the data. The .xyz file and all graphs, charts, and data files created by the `Grapher`s are tidily stored in the same directory, and the full simulation/analysis/visualization is complete.
+Finally, when done, the .xyz file is closed to preserve the data. The .xyz file and all graphs, charts, and data files created by the `Grapher`s are tidily stored in the same directory, and the full simulation/analysis/visualization is complete. The .xyz file can be put into a visualizer such as VMD to observe particle behavior, and screenshots of this are included in the `/images/` folder (the three screenshots are from VMD and show the results of compression). 
 
+
+### `PressureSensor` Details  
+
+The `PressureSensor` mimics the data collected by Wilhelmy plates, but it does not mimic the mechanism. Instead, I set out a permanent region (i.e. a region that does not disappear as a result of the compression), and found all of the particles inside that region using `PressureSensor.find_particles_in()`. I then manually calculate the surface pressure on each particle inside the region by `PressureSensor.calc_pressure()`, and similarly, I can find and store surface potential (necessary to find tensile strength, see poster for eqns) with `PressureSensor.calc_pot()`. 
+
+It is necessary to calculate either the force or the potential between each pair of particles (Pressure = Force / Area, Potential = Integral(Force/Area)). Both are functions of only the distance between two particles. It is easiest to hard-code these functions instead of taking numerical integrals, and the hard-coding is kept in each `PressureSensor` subclass. Hence the choice to use `PressureSensorRL` for RL simulations, etc.
+
+A `sensor` requires a frame as well as a border, which was chosen to ensure that the particles at the edge of the bounds do not lose the force effects of their nearest neighbors, but also so that these nearest neighbors do not have their own effective forces added to the Wilhelmy plate. The pressure for each timestep is calculated and stored as an instance variable in the `sensor`, and for convenience, the total area of the simulation at that time step is also stored as an instance variable. Note: **total area** is a proxy for time and is the independent variable/x-axis in most of the graphs, as the area decreases at each time step; it is not used in the surface pressure calculations--they use **`PressureSensor` area**.
 
 ## Some Background Information and Technical Details
 
